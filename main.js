@@ -8,8 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const keyButtonSm = document.getElementById('key-btn-sm')
   const addButton = document.getElementById('add-btn')
   const addButtonSm = document.getElementById('add-btn-sm')
+  const callButton = document.getElementById('call-btn')
+  const callButtonSm = document.getElementById('call-btn-sm')
   const addPeerDialog = document.getElementById('add-peer-dialog')
+  const incomingCallDialog = document.getElementById('incoming-call-dialog')
   const addPeerDialogCloseButton = document.querySelector('#add-peer-dialog button.close')
+  const incomingCallDialogCloseButton = document.querySelector('#incoming-call-dialog button.close')
   const addPeerButton = document.getElementById('add-peer-btn')
   const newPeerKey = document.getElementById('new-peer-key')
   const sendMessageButton = document.getElementById('send-msg-btn')
@@ -37,9 +41,82 @@ document.addEventListener('DOMContentLoaded', () => {
     addPeerDialog.showModal()
   })
 
+  callButtonSm.addEventListener('click', async e => {
+    e.preventDefault()
+    let stream = null
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: {
+          facingMode: 'user'
+        }
+      })
+      if (stream) {
+        const camera = document.getElementById('camera')
+        const video = document.querySelector('#camera video')
+        const endCallButton = document.getElementById('end-call-button')
+        camera.classList.remove('hidden')
+        video.srcObject = stream
+        video.onloadedmetadata = () => {
+          video.play()
+        }
+        endCallButton.addEventListener('click', e => {
+          e.preventDefault()
+          stream.getTracks().forEach(track => {
+            track.stop()
+          })
+          video.srcObject = null
+          camera.classList.add('hidden')
+        })
+        window.chat.groupCall(stream)
+      }
+    } catch (err) {
+      console.error(`An error occurred: ${err}`)
+    }
+  })
+
+  callButton.addEventListener('click', async e => {
+    e.preventDefault()
+    let stream = null
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: {
+          facingMode: 'user'
+        }
+      })
+      if (stream) {
+        const camera = document.getElementById('camera')
+        const video = document.querySelector('#camera video')
+        const endCallButton = document.getElementById('end-call-button')
+        camera.classList.remove('hidden')
+        video.srcObject = stream
+        video.onloadedmetadata = () => {
+          video.play()
+        }
+        endCallButton.addEventListener('click', e => {
+          e.preventDefault()
+          stream.getTracks().forEach(track => {
+            track.stop()
+          })
+          video.srcObject = null
+          camera.classList.add('hidden')
+        })
+        window.chat.groupCall(stream)
+      }
+    } catch (err) {
+      console.error(`An error occurred: ${err}`)
+    }
+  })
+
   addPeerDialogCloseButton.addEventListener('click', e => {
     e.preventDefault()
     addPeerDialog.close()
+  })
+
+  incomingCallDialogCloseButton.addEventListener('click', e => {
+    e.preventDefault()
+    incomingCallDialog.close()
   })
 
   addPeerButton.addEventListener('click', e => {
