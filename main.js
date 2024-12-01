@@ -1,5 +1,5 @@
-import { showInfo } from './lib/messages'
 import { Chatroom } from './lib/chatroom'
+import { View } from './lib/view'
 import { Peer } from 'peerjs'
 import './style.css'
 
@@ -11,141 +11,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const callButton = document.getElementById('call-btn')
   const callButtonSm = document.getElementById('call-btn-sm')
   const addPeerDialog = document.getElementById('add-peer-dialog')
-  const incomingCallDialog = document.getElementById('incoming-call-dialog')
   const addPeerDialogCloseButton = document.querySelector('#add-peer-dialog button.close')
   const incomingCallDialogCloseButton = document.querySelector('#incoming-call-dialog button.close')
   const addPeerButton = document.getElementById('add-peer-btn')
   const newPeerKey = document.getElementById('new-peer-key')
   const sendMessageButton = document.getElementById('send-msg-btn')
   const messageInput = document.getElementById('msg-input')
+  const camera = document.getElementById('camera')
+  const video = document.querySelector('#camera video')
+  const endCallButton = document.getElementById('end-call-button')
 
-  keyButton.addEventListener('click', e => {
-    e.preventDefault()
-    if (window.peer && window.peer.id)
-    showInfo({ text: 'Your personal key is {cta}', cta: window.peer.id })
-  })
+  keyButton.addEventListener('click', View.showKey())
+  keyButtonSm.addEventListener('click', View.showKey())
 
-  keyButtonSm.addEventListener('click', e => {
-    e.preventDefault()
-    if (window.peer && window.peer.id)
-    showInfo({ text: 'Your personal key is {cta}', cta: window.peer.id })
-  })
+  addButtonSm.addEventListener('click', View.showAddPeerModal(addPeerDialog))
+  addButton.addEventListener('click', View.showAddPeerModal(addPeerDialog))
 
-  addButtonSm.addEventListener('click', e => {
-    e.preventDefault()
-    addPeerDialog.showModal()
-  })
+  callButtonSm.addEventListener('click', View.startCall())
+  callButton.addEventListener('click', View.startCall())
 
-  addButton.addEventListener('click', e => {
-    e.preventDefault()
-    addPeerDialog.showModal()
-  })
+  addPeerDialogCloseButton.addEventListener('click', View.closeAddPeerModal(addPeerDialog))
+  incomingCallDialogCloseButton.addEventListener('click', View.closeAddPeerModal(addPeerDialog))
 
-  callButtonSm.addEventListener('click', async e => {
-    e.preventDefault()
-    let stream = null
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: {
-          facingMode: 'user'
-        }
-      })
-      if (stream) {
-        const camera = document.getElementById('camera')
-        const video = document.querySelector('#camera video')
-        const endCallButton = document.getElementById('end-call-button')
-        camera.classList.remove('hidden')
-        video.srcObject = stream
-        video.onloadedmetadata = () => {
-          video.play()
-        }
-        endCallButton.addEventListener('click', e => {
-          e.preventDefault()
-          stream.getTracks().forEach(track => {
-            track.stop()
-          })
-          video.srcObject = null
-          camera.classList.add('hidden')
-        })
-        window.chat.groupCall(stream)
-      }
-    } catch (err) {
-      console.error(`An error occurred: ${err}`)
-    }
-  })
+  addPeerButton.addEventListener('click', View.addPeer(newPeerKey, addPeerDialog))
 
-  callButton.addEventListener('click', async e => {
-    e.preventDefault()
-    let stream = null
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: {
-          facingMode: 'user'
-        }
-      })
-      if (stream) {
-        const camera = document.getElementById('camera')
-        const video = document.querySelector('#camera video')
-        const endCallButton = document.getElementById('end-call-button')
-        camera.classList.remove('hidden')
-        video.srcObject = stream
-        video.onloadedmetadata = () => {
-          video.play()
-        }
-        endCallButton.addEventListener('click', e => {
-          e.preventDefault()
-          stream.getTracks().forEach(track => {
-            track.stop()
-          })
-          video.srcObject = null
-          camera.classList.add('hidden')
-        })
-        window.chat.groupCall(stream)
-      }
-    } catch (err) {
-      console.error(`An error occurred: ${err}`)
-    }
-  })
+  sendMessageButton.addEventListener('click', View.sendMessage(messageInput))
 
-  addPeerDialogCloseButton.addEventListener('click', e => {
-    e.preventDefault()
-    addPeerDialog.close()
-  })
+  messageInput.addEventListener('keydown', View.sendMessageOnEnter(messageInput))
 
-  incomingCallDialogCloseButton.addEventListener('click', e => {
-    e.preventDefault()
-    incomingCallDialog.close()
-  })
-
-  addPeerButton.addEventListener('click', e => {
-    e.preventDefault()
-    if (window.peer) {
-      const peerId = newPeerKey.value
-      window.chat.addMember(peerId)
-      newPeerKey.value = ''
-      addPeerDialog.close()
-    }
-  })
-
-  sendMessageButton.addEventListener('click', e => {
-    e.preventDefault()
-    const msg = messageInput.value
-    window.chat.broadcast(msg)
-    messageInput.value = ''
-  })
-
-  messageInput.addEventListener('keydown', e => {
-    if (e.altKey || e.ctrlKey) {
-      return;
-    }
-    if (e.key === 'Enter') {
-      const msg = messageInput.value
-      window.chat.broadcast(msg)
-      messageInput.value = ''
-    }
-  })
+  endCallButton.addEventListener('click', View.endCall(video, camera))
 
   const peer = new Peer((Math.random() + 1).toString(32).slice(2, 10))
   window.chat = new Chatroom(peer)
